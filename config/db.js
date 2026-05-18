@@ -8,17 +8,22 @@ if (!cached) {
 
 async function connectDB() {
     if (cached.conn) {
+        console.log("MongoDB already connected ✅");
         return cached.conn;
     }
 
     if (!cached.promise) {
         const opts = {
             bufferCommands: false,
+            ssl: true,        // 👈 added
+            tls: true,        // 👈 added
         };
 
         cached.promise = mongoose
-            .connect(`${process.env.MONGO_URI}/quickcart`, opts)
+            .connect(process.env.MONGO_URI, opts)
             .then((mongoose) => {
+                const dbName = mongoose.connection.db.databaseName;
+                console.log(`MongoDB connected successfully ✅ DB: ${dbName}`);
                 return mongoose;
             });
     }
