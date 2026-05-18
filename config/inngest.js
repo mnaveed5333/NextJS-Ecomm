@@ -4,11 +4,10 @@ import User from "../models/User";
 
 export const inngest = new Inngest({ id: "quickcart-next" });
 
-// ✅ Inngest v4 syntax — triggers go INSIDE first argument
 export const syncUserCreation = inngest.createFunction(
     {
         id: 'sync-user-from-clerk',
-        triggers: [{ event: 'clerk/user.created' }]  // ✅ moved here
+        triggers: [{ event: 'clerk/user.created' }]
     },
     async ({ event }) => {
         const { id, first_name, last_name, email_addresses, image_url } = event.data;
@@ -19,15 +18,15 @@ export const syncUserCreation = inngest.createFunction(
             imageUrl: image_url
         };
         await connectDB();
-        await User.create(userData);
+        // ✅ upsert — creates if not exists, updates if exists
+        await User.findByIdAndUpdate(id, userData, { upsert: true, new: true });
     }
 );
 
-// ✅ Update User
 export const syncUserUpdation = inngest.createFunction(
     {
         id: 'update-user-from-clerk',
-        triggers: [{ event: 'clerk/user.updated' }]  // ✅ moved here
+        triggers: [{ event: 'clerk/user.updated' }]
     },
     async ({ event }) => {
         const { id, first_name, last_name, email_addresses, image_url } = event.data;
@@ -41,11 +40,10 @@ export const syncUserUpdation = inngest.createFunction(
     }
 );
 
-// ✅ Delete User
 export const syncUserDeletion = inngest.createFunction(
     {
         id: 'delete-user-from-clerk',
-        triggers: [{ event: 'clerk/user.deleted' }]  // ✅ moved here
+        triggers: [{ event: 'clerk/user.deleted' }]
     },
     async ({ event }) => {
         const { id } = event.data;
