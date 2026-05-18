@@ -1,23 +1,21 @@
 import { Inngest } from "inngest";
 import connectDB from "./db";
-import User from "./models/User"; // ✅ Import your mongoose User model, not from clerk
+import User from "../models/User";
 
 export const inngest = new Inngest({ id: "quickcart-next" });
 
-// Inngest Function to Create User
+// ✅ Inngest v4 syntax — triggers go INSIDE first argument
 export const syncUserCreation = inngest.createFunction(
     {
-        id: 'sync-user-from-clerk'
+        id: 'sync-user-from-clerk',
+        triggers: [{ event: 'clerk/user.created' }]  // ✅ moved here
     },
-    {
-        event: 'clerk/user.created'
-    },  // ✅ comma was missing here
-    async ({ event }) => {  // ✅ destructure {event} properly
+    async ({ event }) => {
         const { id, first_name, last_name, email_addresses, image_url } = event.data;
         const userData = {
             _id: id,
-            email: email_addresses[0].email_address,  // ✅ typo: emai_ → email_
-            name: first_name + ' ' + last_name,       // ✅ added space between names
+            email: email_addresses[0].email_address,
+            name: first_name + ' ' + last_name,
             imageUrl: image_url
         };
         await connectDB();
@@ -25,19 +23,17 @@ export const syncUserCreation = inngest.createFunction(
     }
 );
 
-// Inngest Function to Update User
+// ✅ Update User
 export const syncUserUpdation = inngest.createFunction(
     {
-        id: 'update-user-from-clerk'
-    },
-    {
-        event: 'clerk/user.updated'
+        id: 'update-user-from-clerk',
+        triggers: [{ event: 'clerk/user.updated' }]  // ✅ moved here
     },
     async ({ event }) => {
         const { id, first_name, last_name, email_addresses, image_url } = event.data;
         const userData = {
-            email: email_addresses[0].email_address,  // ✅ typo fixed
-            name: first_name + ' ' + last_name,       // ✅ space added
+            email: email_addresses[0].email_address,
+            name: first_name + ' ' + last_name,
             imageUrl: image_url
         };
         await connectDB();
@@ -45,17 +41,15 @@ export const syncUserUpdation = inngest.createFunction(
     }
 );
 
-// Inngest Function to Delete User
+// ✅ Delete User
 export const syncUserDeletion = inngest.createFunction(
     {
-        id: 'delete-user-from-clerk'
-    },
-    {
-        event: 'clerk/user.deleted'
+        id: 'delete-user-from-clerk',
+        triggers: [{ event: 'clerk/user.deleted' }]  // ✅ moved here
     },
     async ({ event }) => {
-        const { id } = event.data;  // ✅ destructure id from event.data
+        const { id } = event.data;
         await connectDB();
-        await User.findByIdAndDelete(id);  // ✅ pass id to delete correct user
+        await User.findByIdAndDelete(id);
     }
 );
