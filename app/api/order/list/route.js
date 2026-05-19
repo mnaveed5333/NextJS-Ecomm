@@ -14,8 +14,7 @@ export async function GET(request) {
         await connectDB();
 
         const orders = await Order.find({ userId })
-            .populate('items.product')
-                 // ✅ added this
+            .populate('items.product')  // ← lowercase 'product'
             .sort({ date: -1 });
 
         return NextResponse.json({ success: true, orders });

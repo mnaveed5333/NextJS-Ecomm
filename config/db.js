@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import "@/models/product";  // ← add this
+import "@/models/order";    // ← add this
 
 let cached = global.mongoose;
 
@@ -15,8 +17,8 @@ async function connectDB() {
     if (!cached.promise) {
         const opts = {
             bufferCommands: false,
-            ssl: true,        // 👈 added
-            tls: true,        // 👈 added
+            ssl: true,
+            tls: true,
         };
 
         cached.promise = mongoose
