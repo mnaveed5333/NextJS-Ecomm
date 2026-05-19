@@ -8,7 +8,7 @@ const orderSchema = new mongoose.Schema({
         quantity: { type: Number, required: true }
     }],
     amount: { type: Number, required: true },
-    address: { type: mongoose.Schema.Types.ObjectId, ref: 'address', required: true },
+    address: { type: Object, required: true },  // ← changed this
     status: { type: String, required: true, default: 'Order Placed' },
     date: { type: Number, required: true },
 })
