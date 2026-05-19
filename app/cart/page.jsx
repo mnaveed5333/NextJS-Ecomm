@@ -1,5 +1,5 @@
 'use client'
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { assets } from "@/assets/assets";
 import OrderSummary from "@/components/OrderSummary";
 import Image from "next/image";
@@ -8,7 +8,28 @@ import { useAppContext } from "@/context/AppContext";
 
 const Cart = () => {
 
-  const { products, router, cartItems, addToCart, updateCartQuantity, getCartCount } = useAppContext();
+  const { products, router, cartItems, addToCart, updateCartQuantity, getCartCount, fetchUserData, fetchProductData } = useAppContext();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const init = async () => {
+      await fetchProductData();
+      await fetchUserData();
+      setLoading(false);
+    }
+    init();
+  }, [])
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <div className="flex items-center justify-center h-96">
+          <p className="text-gray-500 text-lg">Loading cart...</p>
+        </div>
+      </>
+    )
+  }
 
   return (
     <>
@@ -41,8 +62,7 @@ const Cart = () => {
               </thead>
               <tbody>
                 {Object.keys(cartItems).map((itemId) => {
-                  const product = products.find(product => product._id === itemId);
-
+                  const product = products.find(p => p._id === itemId);
                   if (!product || cartItems[itemId] <= 0) return null;
 
                   return (
@@ -79,19 +99,16 @@ const Cart = () => {
                       <td className="py-4 md:px-4 px-1">
                         <div className="flex items-center md:gap-2 gap-1">
                           <button onClick={() => updateCartQuantity(product._id, cartItems[itemId] - 1)}>
-                            <Image
-                              src={assets.decrease_arrow}
-                              alt="decrease_arrow"
-                              className="w-4 h-4"
-                            />
+                            <Image src={assets.decrease_arrow} alt="decrease_arrow" className="w-4 h-4" />
                           </button>
-                          <input onChange={e => updateCartQuantity(product._id, Number(e.target.value))} type="number" value={cartItems[itemId]} className="w-8 border text-center appearance-none"></input>
+                          <input
+                            onChange={e => updateCartQuantity(product._id, Number(e.target.value))}
+                            type="number"
+                            value={cartItems[itemId]}
+                            className="w-8 border text-center appearance-none"
+                          />
                           <button onClick={() => addToCart(product._id)}>
-                            <Image
-                              src={assets.increase_arrow}
-                              alt="increase_arrow"
-                              className="w-4 h-4"
-                            />
+                            <Image src={assets.increase_arrow} alt="increase_arrow" className="w-4 h-4" />
                           </button>
                         </div>
                       </td>
@@ -102,7 +119,7 @@ const Cart = () => {
               </tbody>
             </table>
           </div>
-          <button onClick={()=> router.push('/all-products')} className="group flex items-center mt-6 gap-2 text-orange-600">
+          <button onClick={() => router.push('/all-products')} className="group flex items-center mt-6 gap-2 text-orange-600">
             <Image
               className="group-hover:-translate-x-1 transition"
               src={assets.arrow_right_icon_colored}
