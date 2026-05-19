@@ -1,3 +1,4 @@
+'use client'
 import { useAppContext } from "@/context/AppContext";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
@@ -5,20 +6,21 @@ import toast from "react-hot-toast";
 
 const OrderSummary = () => {
 
-  const { currency, router, getCartCount, getCartAmount, getToken } = useAppContext()
+  const { currency, router, getCartCount, getCartAmount, getToken, user } = useAppContext()
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userAddresses, setUserAddresses] = useState([]);
 
-  // ✅ fetch addresses from backend
   const fetchUserAddresses = async () => {
     try {
       const token = await getToken();
+      if (!token) return;  // ✅ wait for token
+
       const { data } = await axios.get('/api/user/get-address', {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (data.success) {
-        setUserAddresses(data.addresses)  // ✅ real addresses from MongoDB
+        setUserAddresses(data.addresses)
       } else {
         toast.error(data.message)
       }
@@ -34,13 +36,18 @@ const OrderSummary = () => {
 
   const createOrder = async () => {
     if (!selectedAddress) {
-      return toast.error('Please select an address')  // ✅ validation
+      return toast.error('Please select an address')
     }
   }
 
+  // ✅ refetch on user change + when tab gets focus
   useEffect(() => {
-    fetchUserAddresses();
-  }, [])
+    if (user) {
+      fetchUserAddresses();
+    }
+    window.addEventListener('focus', fetchUserAddresses);
+    return () => window.removeEventListener('focus', fetchUserAddresses);
+  }, [user])
 
   return (
     <div className="w-full md:w-96 bg-gray-500/5 p-5">
@@ -72,18 +79,22 @@ const OrderSummary = () => {
 
             {isDropdownOpen && (
               <ul className="absolute w-full bg-white border shadow-md mt-1 z-10 py-1.5">
-                {userAddresses.map((address, index) => (
-                  <li
-                    key={index}
-                    className="px-4 py-2 hover:bg-gray-500/10 cursor-pointer"
-                    onClick={() => handleAddressSelect(address)}
-                  >
-                    {address.fullName}, {address.area}, {address.city}, {address.state}
-                  </li>
-                ))}
+                {userAddresses.length > 0 ? (
+                  userAddresses.map((address, index) => (
+                    <li
+                      key={index}
+                      className="px-4 py-2 hover:bg-gray-500/10 cursor-pointer"
+                      onClick={() => handleAddressSelect(address)}
+                    >
+                      {address.fullName}, {address.area}, {address.city}, {address.state}
+                    </li>
+                  ))
+                ) : (
+                  <li className="px-4 py-2 text-gray-400 text-center">No addresses found</li>
+                )}
                 <li
                   onClick={() => router.push("/add-address")}
-                  className="px-4 py-2 hover:bg-gray-500/10 cursor-pointer text-center"
+                  className="px-4 py-2 hover:bg-gray-500/10 cursor-pointer text-center text-orange-600 font-medium"
                 >
                   + Add New Address
                 </li>
