@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 
 const OrderSummary = () => {
 
-  const { currency, router, getCartCount, getCartAmount, getToken, user } = useAppContext()
+  const { currency, router, getCartCount, getCartAmount, getToken, user, cartData, setCartData } = useAppContext()
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userAddresses, setUserAddresses] = useState([]);
@@ -14,7 +14,7 @@ const OrderSummary = () => {
   const fetchUserAddresses = async () => {
     try {
       const token = await getToken();
-      if (!token) return;  // ✅ wait for token
+      if (!token) return;
 
       const { data } = await axios.get('/api/user/get-address', {
         headers: { Authorization: `Bearer ${token}` }
@@ -38,9 +38,37 @@ const OrderSummary = () => {
     if (!selectedAddress) {
       return toast.error('Please select an address')
     }
+
+    try {
+      const token = await getToken();
+
+      const cartItems = Object.keys(cartData).map((productId) => ({
+        product: productId,
+        quantity: cartData[productId]
+      }));
+
+      const amount = getCartAmount() + Math.floor(getCartAmount() * 0.02);
+
+      const { data } = await axios.post('/api/order/create', {
+        items: cartItems,
+        address: selectedAddress._id,
+        amount
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (data.success) {
+        toast.success(data.message);
+        setCartData({});
+        router.push('/my-orders');
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
   }
 
-  // ✅ refetch on user change + when tab gets focus
   useEffect(() => {
     if (user) {
       fetchUserAddresses();
