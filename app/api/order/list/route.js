@@ -15,6 +15,7 @@ export async function GET(request) {
 
         const orders = await Order.find({ userId })
             .populate('items.product')
+            .populate('address')        // ✅ added this
             .sort({ date: -1 });
 
         return NextResponse.json({ success: true, orders });
