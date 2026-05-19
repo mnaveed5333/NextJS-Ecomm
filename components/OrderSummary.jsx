@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 
 const OrderSummary = () => {
 
-  const { currency, router, getCartCount, getCartAmount, getToken, user, cartData, setCartData } = useAppContext()
+  const { currency, router, getCartCount, getCartAmount, getToken, user, cartItems, setCartItems } = useAppContext()
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userAddresses, setUserAddresses] = useState([]);
@@ -42,15 +42,15 @@ const OrderSummary = () => {
     try {
       const token = await getToken();
 
-      const cartItems = Object.keys(cartData).map((productId) => ({
+      const items = Object.keys(cartItems).map((productId) => ({
         product: productId,
-        quantity: cartData[productId]
+        quantity: cartItems[productId]
       }));
 
       const amount = getCartAmount() + Math.floor(getCartAmount() * 0.02);
 
       const { data } = await axios.post('/api/order/create', {
-        items: cartItems,
+        items,
         address: selectedAddress._id,
         amount
       }, {
@@ -59,7 +59,7 @@ const OrderSummary = () => {
 
       if (data.success) {
         toast.success(data.message);
-        setCartData({});
+        setCartItems({});
         router.push('/my-orders');
       } else {
         toast.error(data.message);
