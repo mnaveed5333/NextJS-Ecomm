@@ -1,5 +1,4 @@
 'use client'
-import { productsDummyData } from "@/assets/assets";
 import { useAuth, useUser } from "@clerk/nextjs";
 import axios from "axios";
 import { useRouter } from "next/navigation";
@@ -20,20 +19,28 @@ export const AppContextProvider = (props) => {
     const { getToken } = useAuth()
     const [products, setProducts] = useState([])
     const [userData, setUserData] = useState(false)
-    const [isSeller, setIsSeller] = useState(false)  // ✅ false not true
+    const [isSeller, setIsSeller] = useState(false)
     const [cartItems, setCartItems] = useState({})
 
+    // ✅ fetch all products from database (no auth needed — public route)
     const fetchProductData = async () => {
         try {
-            setProducts(productsDummyData)
+            const { data } = await axios.get('/api/product/list')  // ✅ removed productsDummyData
+            if (data.success) {
+                setProducts(data.products)  // ✅ real products from MongoDB
+            } else {
+                toast.error(data.message)
+            }
         } catch (error) {
             toast.error(error.message)
         }
     }
 
+    // ✅ fetch logged in user data from database
     const fetchUserData = async () => {
         try {
-            if (user?.publicMetadata?.role === 'seller') {  // ✅ optional chaining
+            // ✅ check if user is seller from clerk metadata
+            if (user?.publicMetadata?.role === 'seller') {
                 setIsSeller(true)
             }
 
@@ -43,9 +50,9 @@ export const AppContextProvider = (props) => {
             })
 
             if (data.success) {
-                if (data.user) {                            // ✅ null check
+                if (data.user) {
                     setUserData(data.user)
-                    setCartItems(data.user.cartItems || {}) // ✅ fallback
+                    setCartItems(data.user.cartItems || {}) // ✅ fallback to empty cart
                 }
             } else {
                 toast.error(data.message)
@@ -56,9 +63,10 @@ export const AppContextProvider = (props) => {
         }
     }
 
+    // ✅ add item to cart and sync with database
     const addToCart = async (itemId) => {
         let cartData = structuredClone(cartItems);
-        cartData[itemId] = (cartData[itemId] || 0) + 1;    // ✅ cleaner increment
+        cartData[itemId] = (cartData[itemId] || 0) + 1;
         setCartItems(cartData);
 
         try {
@@ -72,10 +80,11 @@ export const AppContextProvider = (props) => {
         }
     }
 
+    // ✅ update cart item quantity or remove if quantity is 0
     const updateCartQuantity = async (itemId, quantity) => {
         let cartData = structuredClone(cartItems);
         if (quantity === 0) {
-            delete cartData[itemId];
+            delete cartData[itemId]; // ✅ remove item from cart
         } else {
             cartData[itemId] = quantity;
         }
@@ -92,6 +101,7 @@ export const AppContextProvider = (props) => {
         }
     }
 
+    // ✅ get total number of items in cart
     const getCartCount = () => {
         let totalCount = 0;
         for (const items in cartItems) {
@@ -102,26 +112,29 @@ export const AppContextProvider = (props) => {
         return totalCount;
     }
 
+    // ✅ get total price of items in cart
     const getCartAmount = () => {
         let totalAmount = 0;
         for (const items in cartItems) {
             let itemInfo = products.find((product) => product._id === items);
-            if (itemInfo && cartItems[items] > 0) {         // ✅ null check for itemInfo
+            if (itemInfo && cartItems[items] > 0) {
                 totalAmount += itemInfo.offerPrice * cartItems[items];
             }
         }
         return Math.floor(totalAmount * 100) / 100;
     }
 
+    // ✅ fetch products on app load
     useEffect(() => {
         fetchProductData()
     }, [])
 
+    // ✅ fetch user data when user logs in, reset everything on logout
     useEffect(() => {
         if (user) {
             fetchUserData()
         } else {
-            setUserData(false)      // ✅ reset on logout
+            setUserData(false)   // ✅ reset on logout
             setIsSeller(false)
             setCartItems({})
         }

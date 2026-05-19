@@ -21,7 +21,7 @@ const ProductList = () => {
 
       const { data } = await axios.get('/api/product/seller-list', {
         headers: {
-          Authorization: `Bearer ${token}`  // ✅ auth header
+          Authorization: `Bearer ${token}`  // ✅ auth   header
         }
       });
 
