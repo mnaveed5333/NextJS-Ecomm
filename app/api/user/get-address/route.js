@@ -15,7 +15,7 @@ const addressSchema = new mongoose.Schema({
 
 const Address = mongoose.models.Address || mongoose.model('Address', addressSchema)
 
-export async function POST(request) {
+export async function GET(request) {
     try {
         const { userId } = getAuth(request);
 
@@ -23,13 +23,11 @@ export async function POST(request) {
             return NextResponse.json({ success: false, message: "Unauthorized" });
         }
 
-        const { address } = await request.json();
-
         await connectDB();
 
-        await Address.create({ ...address, userId });
+        const addresses = await Address.find({ userId });
 
-        return NextResponse.json({ success: true, message: "Address Saved" });
+        return NextResponse.json({ success: true, addresses });
 
     } catch (error) {
         return NextResponse.json({ success: false, message: error.message });
