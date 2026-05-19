@@ -11,11 +11,11 @@ export async function POST(request) {
             return NextResponse.json({ success: false, message: "Unauthorized" });
         }
 
-        const { address } = await request.json();  // ✅ get address from frontend
+        const { address } = await request.json();
 
         await connectDB();
 
-        await Address.create({ ...address, userId });  // ✅ save to MongoDB
+        await Address.create({ ...address, userId });
 
         return NextResponse.json({ success: true, message: "Address Saved" });
 

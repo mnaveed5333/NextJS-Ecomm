@@ -13,7 +13,6 @@ export async function GET(request) {
 
         await connectDB();
 
-        // ✅ fetch all addresses of this user
         const addresses = await Address.find({ userId });
 
         return NextResponse.json({ success: true, addresses });
