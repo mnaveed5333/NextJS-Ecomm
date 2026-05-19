@@ -68,7 +68,7 @@ export const AppContextProvider = (props) => {
         let cartData = structuredClone(cartItems);
         cartData[itemId] = (cartData[itemId] || 0) + 1;
         setCartItems(cartData);
-
+        toast.success("Items Added to Cart")
         try {
             const token = await getToken()
             await axios.post('/api/cart/update',
