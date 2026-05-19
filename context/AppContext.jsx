@@ -15,19 +15,18 @@ export const AppContextProvider = (props) => {
 
     const currency = process.env.NEXT_PUBLIC_CURRENCY
     const router = useRouter()
-    const { user } = useUser()
-    const { getToken } = useAuth()
+    const { user, isLoaded } = useUser()       // ✅ add isLoaded
+    const { getToken, isSignedIn } = useAuth() // ✅ add isSignedIn
     const [products, setProducts] = useState([])
     const [userData, setUserData] = useState(false)
     const [isSeller, setIsSeller] = useState(false)
     const [cartItems, setCartItems] = useState({})
 
-    // ✅ fetch all products from database (no auth needed — public route)
     const fetchProductData = async () => {
         try {
-            const { data } = await axios.get('/api/product/list')  // ✅ removed productsDummyData
+            const { data } = await axios.get('/api/product/list')
             if (data.success) {
-                setProducts(data.products)  // ✅ real products from MongoDB
+                setProducts(data.products)
             } else {
                 toast.error(data.message)
             }
@@ -36,15 +35,17 @@ export const AppContextProvider = (props) => {
         }
     }
 
-    // ✅ fetch logged in user data from database
     const fetchUserData = async () => {
         try {
-            // ✅ check if user is seller from clerk metadata
             if (user?.publicMetadata?.role === 'seller') {
                 setIsSeller(true)
             }
 
             const token = await getToken()
+
+            // ✅ stop if token not ready
+            if (!token) return;
+
             const { data } = await axios.get('/api/user/data', {
                 headers: { Authorization: `Bearer ${token}` }
             })
@@ -52,7 +53,7 @@ export const AppContextProvider = (props) => {
             if (data.success) {
                 if (data.user) {
                     setUserData(data.user)
-                    setCartItems(data.user.cartItems || {}) // ✅ fallback to empty cart
+                    setCartItems(data.user.cartItems || {})
                 }
             } else {
                 toast.error(data.message)
@@ -63,7 +64,6 @@ export const AppContextProvider = (props) => {
         }
     }
 
-    // ✅ add item to cart and sync with database
     const addToCart = async (itemId) => {
         let cartData = structuredClone(cartItems);
         cartData[itemId] = (cartData[itemId] || 0) + 1;
@@ -80,11 +80,10 @@ export const AppContextProvider = (props) => {
         }
     }
 
-    // ✅ update cart item quantity or remove if quantity is 0
     const updateCartQuantity = async (itemId, quantity) => {
         let cartData = structuredClone(cartItems);
         if (quantity === 0) {
-            delete cartData[itemId]; // ✅ remove item from cart
+            delete cartData[itemId];
         } else {
             cartData[itemId] = quantity;
         }
@@ -101,7 +100,6 @@ export const AppContextProvider = (props) => {
         }
     }
 
-    // ✅ get total number of items in cart
     const getCartCount = () => {
         let totalCount = 0;
         for (const items in cartItems) {
@@ -112,7 +110,6 @@ export const AppContextProvider = (props) => {
         return totalCount;
     }
 
-    // ✅ get total price of items in cart
     const getCartAmount = () => {
         let totalAmount = 0;
         for (const items in cartItems) {
@@ -129,17 +126,18 @@ export const AppContextProvider = (props) => {
         fetchProductData()
     }, [])
 
-    // ✅ fetch user data when user logs in, reset everything on logout
+    // ✅ wait for Clerk to fully load before fetching user data
     useEffect(() => {
-        if (user) {
+        if (!isLoaded) return; // ✅ wait until Clerk is ready
+
+        if (isSignedIn && user) {
             fetchUserData()
         } else {
-            setUserData(false)   // ✅ reset on logout
+            setUserData(false)
             setIsSeller(false)
             setCartItems({})
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user])
+    }, [isLoaded, isSignedIn, user]) // ✅ depend on all three
 
     const value = {
         user, getToken,
