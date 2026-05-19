@@ -1,8 +1,9 @@
+import connectDB from "@/config/db";
 import authSeller from "@/lib/authSeller";
+import Product from "@/models/product";
 import { getAuth } from "@clerk/nextjs/server";
 import { v2 as cloudinary } from "cloudinary";
 import { NextResponse } from "next/server";
-// ✅ removed wrong import "styled-jsx/css"
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -10,7 +11,7 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export async function POST(request) {  // ✅ renamed parems to request
+export async function POST(request) {
     try {
         const { userId } = getAuth(request);
         const isSeller = await authSeller(userId);
@@ -23,6 +24,7 @@ export async function POST(request) {  // ✅ renamed parems to request
         const name = formData.get("name");
         const description = formData.get("description");
         const category = formData.get("category");
+        const price = formData.get("price");           // ✅ added
         const offerPrice = formData.get("offerPrice");
         const files = formData.getAll("images");
 
@@ -35,7 +37,7 @@ export async function POST(request) {  // ✅ renamed parems to request
                 const arrayBuffer = await file.arrayBuffer();
                 const buffer = Buffer.from(arrayBuffer);
 
-                return new Promise((resolve, reject) => {  // ✅ fixed => instead of =
+                return new Promise((resolve, reject) => {
                     const stream = cloudinary.uploader.upload_stream(
                         { resource_type: "auto" },
                         (error, result) => {
@@ -46,16 +48,29 @@ export async function POST(request) {  // ✅ renamed parems to request
                             }
                         }
                     );
-                    stream.end(buffer);  // ✅ added missing stream.end()
+                    stream.end(buffer);
                 });
             })
         );
 
         const images = result.map((result) => result.secure_url);
 
-        return NextResponse.json({ success: true, images });  // ✅ added return
+        await connectDB();
+
+        const newProduct = await Product.create({
+            userId,
+            name,
+            description,
+            category,
+            price: Number(price),           // ✅ fixed
+            offerPrice: Number(offerPrice),
+            image: images,                  // ✅ fixed
+            date: Date.now()
+        });
+
+        return NextResponse.json({ success: true, message: "Upload Successful", newProduct });
 
     } catch (error) {
-        return NextResponse.json({ success: false, message: error.message });  // ✅ added error response
+        return NextResponse.json({ success: false, message: error.message });
     }
 }
