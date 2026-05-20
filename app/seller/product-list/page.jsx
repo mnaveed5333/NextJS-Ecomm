@@ -22,7 +22,11 @@ const ProductList = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (data.success) {
-        setProducts(data.products);
+        // ✅ Filter out any null/malformed products
+        const valid = (data.products || []).filter(
+          p => p && p._id && p.name && Array.isArray(p.image) && p.image.length > 0
+        );
+        setProducts(valid);
       } else {
         toast.error(data.message);
       }
@@ -88,8 +92,8 @@ const ProductList = () => {
                     </td>
                   </tr>
                 ) : (
-                  products.map((product, index) => (
-                    <tr key={index} className="border-t border-gray-500/20">
+                  products.map((product) => (
+                    <tr key={product._id} className="border-t border-gray-500/20">
                       <td className="md:px-4 pl-2 md:pl-4 py-3 flex items-center space-x-3 truncate">
                         <div className="bg-gray-500/10 rounded p-2">
                           <Image
@@ -102,8 +106,8 @@ const ProductList = () => {
                         </div>
                         <span className="truncate w-full">{product.name}</span>
                       </td>
-                      <td className="px-4 py-3 max-sm:hidden">{product.category}</td>
-                      <td className="px-4 py-3">${product.offerPrice}</td>
+                      <td className="px-4 py-3 max-sm:hidden">{product.category ?? '—'}</td>
+                      <td className="px-4 py-3">${product.offerPrice ?? product.price ?? '—'}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2.5">
 
@@ -111,27 +115,27 @@ const ProductList = () => {
                           <button
                             onClick={() => router.push(`/product/${product._id}`)}
                             className="flex items-center justify-center gap-1.5
-               min-w-[40px] md:min-w-[100px]
-               px-3 md:px-4 py-2
-               bg-orange-600 hover:bg-orange-700 active:scale-95
-               text-white text-sm font-medium
-               rounded-lg transition-all duration-150 whitespace-nowrap"
+                              min-w-[40px] md:min-w-[100px]
+                              px-3 md:px-4 py-2
+                              bg-orange-600 hover:bg-orange-700 active:scale-95
+                              text-white text-sm font-medium
+                              rounded-lg transition-all duration-150 whitespace-nowrap"
                           >
                             <span className="hidden md:block">Visit</span>
                             <Image className="h-3.5 w-3.5 flex-shrink-0" src={assets.redirect_icon} alt="redirect_icon" />
                           </button>
 
-                          {/* Delete button — identical width & bg as Visit */}
+                          {/* Delete button */}
                           <button
                             onClick={() => deleteProduct(product._id)}
                             disabled={deletingId === product._id}
                             className="flex items-center justify-center gap-1.5
-               min-w-[40px] md:min-w-[100px]
-               px-3 md:px-4 py-2
-               bg-orange-600 hover:bg-orange-700 active:scale-95
-               disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100
-               text-white text-sm font-medium
-               rounded-lg transition-all duration-150 whitespace-nowrap"
+                              min-w-[40px] md:min-w-[100px]
+                              px-3 md:px-4 py-2
+                              bg-orange-600 hover:bg-orange-700 active:scale-95
+                              disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100
+                              text-white text-sm font-medium
+                              rounded-lg transition-all duration-150 whitespace-nowrap"
                           >
                             <span className="hidden md:block">
                               {deletingId === product._id ? 'Deleting...' : 'Delete'}
