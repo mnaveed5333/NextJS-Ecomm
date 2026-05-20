@@ -107,62 +107,43 @@ const ProductList = () => {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
 
-                          {/* Visit — icon only, all screens */}
-                          <button
-                            onClick={() => router.push(`/product/${product._id}`)}
-                            title="Visit product"
-                            aria-label="Visit product"
-                            className="flex items-center justify-center w-9 h-9 flex-shrink-0
-                                       bg-orange-600 hover:bg-orange-700 active:scale-90
-                                       text-white rounded-lg transition-all duration-150"
-                          >
-                            <Image
-                              src={assets.redirect_icon}
-                              alt=""
-                              className="w-4 h-4"
-                              width={16}
-                              height={16}
-                            />
-                          </button>
+  {/* Visit — icon only */}
+  <button
+    onClick={() => router.push(`/product/${product._id}`)}
+    title="Visit product"
+    aria-label="Visit product"
+    className="flex items-center justify-center w-9 h-9 flex-shrink-0
+               bg-orange-600 hover:bg-orange-700 active:scale-90
+               text-white rounded-lg transition-all duration-150"
+  >
+    <Image src={assets.redirect_icon} alt="" className="w-4 h-4" width={16} height={16} />
+  </button>
 
-                          {/* Delete — icon only, all screens */}
-                          <button
-                            onClick={() => deleteProduct(product._id)}
-                            disabled={deletingId === product._id}
-                            title={deletingId === product._id ? 'Deleting...' : 'Delete product'}
-                            aria-label={deletingId === product._id ? 'Deleting...' : 'Delete product'}
-                            className="flex items-center justify-center w-9 h-9 flex-shrink-0
-                                       bg-orange-600 hover:bg-orange-700 active:scale-90
-                                       disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100
-                                       text-white rounded-lg transition-all duration-150"
-                          >
-                            {deletingId === product._id ? (
-                              /* Spinning loader while deleting */
-                              <svg
-                                className="w-4 h-4 animate-spin"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                              >
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                              </svg>
-                            ) : (
-                              /* Trash icon */
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="w-4 h-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            )}
-                          </button>
+  {/* Delete — icon only */}
+  <button
+    onClick={() => deleteProduct(product._id)}
+    disabled={deletingId === product._id}
+    title={deletingId === product._id ? 'Deleting...' : 'Delete product'}
+    aria-label={deletingId === product._id ? 'Deleting...' : 'Delete product'}
+    className="flex items-center justify-center w-9 h-9 flex-shrink-0
+               bg-orange-600 hover:bg-orange-700 active:scale-90
+               disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100
+               text-white rounded-lg transition-all duration-150"
+  >
+    {deletingId === product._id ? (
+      <svg className="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+      </svg>
+    ) : (
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+      </svg>
+    )}
+  </button>
 
-                        </div>
+</div>
                       </td>
                     </tr>
                   ))
