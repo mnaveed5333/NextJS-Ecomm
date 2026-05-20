@@ -13,7 +13,7 @@ const ProductList = () => {
   const { router, getToken, user } = useAppContext()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
-  const [deletingId, setDeletingId] = useState(null) // ✅ track which product is deleting
+  const [deletingId, setDeletingId] = useState(null)
 
   const fetchSellerProduct = async () => {
     try {
@@ -33,7 +33,6 @@ const ProductList = () => {
     }
   }
 
-  // ✅ delete product from MongoDB
   const deleteProduct = async (productId) => {
     const confirmed = window.confirm("Are you sure you want to delete this product?");
     if (!confirmed) return;
@@ -49,7 +48,6 @@ const ProductList = () => {
 
       if (data.success) {
         toast.success("Product deleted successfully");
-        // ✅ remove from UI instantly without refetch
         setProducts(prev => prev.filter(p => p._id !== productId));
       } else {
         toast.error(data.message);
@@ -107,31 +105,37 @@ const ProductList = () => {
                       <td className="px-4 py-3 max-sm:hidden">{product.category}</td>
                       <td className="px-4 py-3">${product.offerPrice}</td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
 
-                          {/* ✅ Visit button */}
+                          {/* Visit button */}
                           <button
                             onClick={() => router.push(`/product/${product._id}`)}
-                            className="flex items-center gap-1 px-1.5 md:px-3.5 py-2 bg-orange-600 text-white rounded-md"
+                            className="flex items-center gap-1.5 px-3 md:px-4 py-2 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white rounded-md transition-colors duration-150 whitespace-nowrap"
                           >
-                            <span className="hidden md:block">Visit</span>
+                            <span className="hidden md:block text-sm font-medium">Visit</span>
                             <Image
-                              className="h-3.5"
+                              className="h-3.5 w-3.5"
                               src={assets.redirect_icon}
                               alt="redirect_icon"
                             />
                           </button>
 
-                          {/* ✅ Delete button */}
+                          {/* Delete button — same orange bg as Visit */}
                           <button
                             onClick={() => deleteProduct(product._id)}
                             disabled={deletingId === product._id}
-                            className="flex items-center gap-1 px-1.5 md:px-3.5 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50"
+                            className="flex items-center gap-1.5 px-3 md:px-4 py-2 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-md transition-colors duration-150 whitespace-nowrap"
                           >
-                            <span className="hidden md:block">
+                            <span className="hidden md:block text-sm font-medium">
                               {deletingId === product._id ? 'Deleting...' : 'Delete'}
                             </span>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-3.5 w-3.5 flex-shrink-0"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                           </button>
