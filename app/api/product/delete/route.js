@@ -15,9 +15,12 @@ export async function DELETE(request) {
 
         const { productId } = await request.json();
 
+        if (!productId) {
+            return NextResponse.json({ success: false, message: "Product ID is required" });
+        }
+
         await connectDB();
 
-        // ✅ only delete if product belongs to this seller
         const product = await Product.findOneAndDelete({
             _id: productId,
             userId: userId
