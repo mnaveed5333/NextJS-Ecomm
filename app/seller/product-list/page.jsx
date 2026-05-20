@@ -13,7 +13,6 @@ const ProductList = () => {
   const { router, getToken, user } = useAppContext()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
-  const [deletingId, setDeletingId] = useState(null)
 
   const fetchSellerProduct = async () => {
     try {
@@ -22,11 +21,7 @@ const ProductList = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (data.success) {
-        // ✅ Filter out null/incomplete products before setting state
-        const validProducts = (data.products || []).filter(
-          (p) => p != null && p._id && p.name && Array.isArray(p.image) && p.image.length > 0
-        );
-        setProducts(validProducts);
+        setProducts(data.products);
       } else {
         toast.error(data.message);
       }
@@ -34,32 +29,6 @@ const ProductList = () => {
       toast.error(error.message);
     } finally {
       setLoading(false);
-    }
-  }
-
-  const deleteProduct = async (productId) => {
-    const confirmed = window.confirm("Are you sure you want to delete this product?");
-    if (!confirmed) return;
-
-    try {
-      setDeletingId(productId);
-      const token = await getToken();
-
-      const { data } = await axios.delete('/api/product/delete', {
-        headers: { Authorization: `Bearer ${token}` },
-        data: { productId }
-      });
-
-      if (data.success) {
-        toast.success("Product deleted successfully");
-        setProducts(prev => prev.filter(p => p._id !== productId));
-      } else {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setDeletingId(null);
     }
   }
 
@@ -92,76 +61,35 @@ const ProductList = () => {
                     </td>
                   </tr>
                 ) : (
-                  products.map((product) => (
-                    <tr key={product._id} className="border-t border-gray-500/20">
+                  products.map((product, index) => (
+                    <tr key={index} className="border-t border-gray-500/20">
                       <td className="md:px-4 pl-2 md:pl-4 py-3 flex items-center space-x-3 truncate">
                         <div className="bg-gray-500/10 rounded p-2">
-                          {/* ✅ Guard: only render Image if src is a valid string */}
-                          {product.image?.[0] ? (
-                            <Image
-                              src={product.image[0]}
-                              alt={product.name || "product image"}
-                              className="w-16"
-                              width={1280}
-                              height={720}
-                            />
-                          ) : (
-                            <div className="w-16 h-12 bg-gray-200 rounded" />
-                          )}
+                          <Image
+                            src={product.image[0]}
+                            alt="product Image"
+                            className="w-16"
+                            width={1280}
+                            height={720}
+                          />
                         </div>
-                        <span className="truncate w-full">{product.name ?? '—'}</span>
+                        <span className="truncate w-full">{product.name}</span>
                       </td>
-                      <td className="px-4 py-3 max-sm:hidden">{product.category ?? '—'}</td>
-                      <td className="px-4 py-3">${product.offerPrice ?? product.price ?? '—'}</td>
+                      <td className="px-4 py-3 max-sm:hidden">{product.category}</td>
+                      <td className="px-4 py-3">${product.offerPrice}</td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-2.5">
-
-                          {/* Visit button */}
-                          <button
-                            onClick={() => router.push(`/product/${product._id}`)}
-                            className="flex items-center justify-center gap-1.5
-                              min-w-[40px] md:min-w-[100px]
-                              px-3 md:px-4 py-2
-                              bg-orange-600 hover:bg-orange-700 active:scale-95
-                              text-white text-sm font-medium
-                              rounded-lg transition-all duration-150 whitespace-nowrap"
-                          >
-                            <span className="hidden md:block">Visit</span>
-                            <Image
-                              className="h-3.5 w-3.5 flex-shrink-0"
-                              src={assets.redirect_icon}
-                              alt="redirect_icon"
-                            />
-                          </button>
-
-                          {/* Delete button */}
-                          <button
-                            onClick={() => deleteProduct(product._id)}
-                            disabled={deletingId === product._id}
-                            className="flex items-center justify-center gap-1.5
-                              min-w-[40px] md:min-w-[100px]
-                              px-3 md:px-4 py-2
-                              bg-orange-600 hover:bg-orange-700 active:scale-95
-                              disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100
-                              text-white text-sm font-medium
-                              rounded-lg transition-all duration-150 whitespace-nowrap"
-                          >
-                            <span className="hidden md:block">
-                              {deletingId === product._id ? 'Deleting...' : 'Delete'}
-                            </span>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-3.5 w-3.5 flex-shrink-0"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-
-                        </div>
+                        <button
+                          onClick={() => router.push(`/product/${product._id}`)}
+                          className="flex items-center justify-center gap-1.5
+                            min-w-[40px] md:min-w-[100px]
+                            px-3 md:px-4 py-2
+                            bg-orange-600 hover:bg-orange-700 active:scale-95
+                            text-white text-sm font-medium
+                            rounded-lg transition-all duration-150 whitespace-nowrap"
+                        >
+                          <span className="hidden md:block">Visit</span>
+                          <Image className="h-3.5 w-3.5 flex-shrink-0" src={assets.redirect_icon} alt="redirect_icon" />
+                        </button>
                       </td>
                     </tr>
                   ))
